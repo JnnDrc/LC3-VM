@@ -7,15 +7,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 //----------------------------------------------------------
 //Macros & Helpers
 
 #define VM_LC3 static inline
 
-typedef unsigned char u8;           // inteiro sem sinal de 8 bits
-typedef unsigned short u16;         // inteiro sem sinal de 16 bits
+typedef unsigned char u8;           // 8 bits unsigned integer  | inteiro sem sinal de 8 bits
+typedef unsigned short u16;         // 16 bits unsigned integer | inteiro sem sinal de 16 bits
+typedef unsigned int u32;           // 32 bits unsigned integer | inteiro sem sinal de 32 bits
 #define U16_MAX 0b1111111111111111  // Max value for unsigned 16bit integer | Valor máximo para inteiro sem sinal de 16 bits
 
 //? Uncomment these to use rti or res | descomente-os para poder usar rti ou res
@@ -85,6 +86,7 @@ VM_LC3 void updflg(enum regs r)
 //Ops   | Operações
 
 #define OPS     (16)    //Number of op codes | Numero de op codes
+#define TRPVECS (10)    //Number of trap sub-routines | numero de sub-rotinas trap
 #define TRPOFF  (32)    //Trap offset
 
 typedef void (*op_executor_f)(u16 inst);
@@ -230,7 +232,7 @@ VM_LC3 void trphlt(void)
 {
     running = 0;
 }
-trp_executor_f trp_execute[10] = {trpgetc, trpout, trpputs, trpin, trpputsp,trphlt, trpinu16, trpoutu16,trpini16,trpouti16};
+trp_executor_f trp_execute[TRPVECS] = {trpgetc, trpout, trpputs, trpin, trpputsp,trphlt, trpinu16, trpoutu16,trpini16,trpouti16};
 
 /*0xF|0b1111*/ VM_LC3 void trp (u16 inst)
 { 
@@ -268,19 +270,74 @@ void load_image(const char* image_path, u16 offset)
     fclose(img);
 }
 
+void debug_memory(u16 offset)
+{
+    u16* p = memory + PC_START + offset;
+    u16 mempos = PC_START + offset;
+    while (*p)
+    {
+        fprintf(stdout,"\x1b[33m""memory[0x%04X] : 0x%04X\n""\x1b[0m",mempos,*p);
+        p++;
+        mempos++;
+    }
+}
+
+void help(void);
+
 int main(int argc, char const *argv[])
 {   
+    size_t runoff = 0x0;
+    size_t loadoff = 0x0;
+    u32 arg = 2;
+    u8 dbg = 0;
     if(argc < 2)
     {
-        fprintf(stdout,"\x1b[31m""\nERR: Missing program to run\n""\x1b[0m");
-        fprintf(stdout,"\x1b[33m""\nEXPECT: [executable_path] [program_path]""\x1b[0m");
+        fprintf(stdout,"\x1b[31m""ERR: Missing program to run\n""\x1b[0m");
+        fprintf(stdout,"\x1b[33m""\nEXPECT: lc3-vm (OBLIGATORY)[program_path] (OPTIONAL)[vm_flags]""\x1b[0m");
+        fprintf(stdout,"\x1b[33m""\nHELP: type lc3-vm --help for flags list""\x1b[0m");
         return 1;
     }
+    if(!strcmp(argv[1],"--help"))
+    {
+        help();
+        return 0;
+    }
+
+
+    fprintf(stdout,"\x1b[36m""Setting up VM\n",PC_START + runoff);
+    for(u32 i = 2; i < argc; i++)
+    {
+        if(!strcmp(argv[i], "--dbg")) dbg = 1;
+
+        if(!strcmp(argv[i],"--runoff")) sscanf(argv[i+1],"%x",&runoff);
+
+        if(!strcmp(argv[i],"--loadoff")) sscanf(argv[i+1],"%x",&loadoff);
+    }
+    
+
+    fprintf(stdout,"\x1b[36m""Run origin setted to %X\n""\x1b[0m",PC_START + runoff);
+    fprintf(stdout,"\x1b[36m""Load program image origin setted to %X\n""\x1b[0m",PC_START + loadoff);
+
     fprintf(stdout,"\x1b[36m""Loading program to memory...\n""\x1b[0m");
-    load_image(argv[1],0x0);
+    load_image(argv[1],loadoff);
     fprintf(stdout,"\x1b[36m""Program Loaded to memory\n""\x1b[0m");
-    run(0x0);
+
+    if(dbg) debug_memory(loadoff);
+
+    run(runoff);
     
     fprintf(stdout,"\x1b[36m""\nVM exited with success\n""\x1b[0m");
     return 0;
+}
+
+void help(void)
+{
+    fprintf(stdout,"\x1b[36m""----LC-3 Virtual Machine Help Manual----\n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m""flags:                                  \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m"" --dbg     : enable debug mode          \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m"" --runoff  : set run offset             \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m""      --runoff value(hex)               \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m"" --loadoff : set load program offset    \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m""      --loadoff value(hex)              \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m""----------------------------------------\n""\x1b[0m");
 }

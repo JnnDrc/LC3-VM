@@ -1,7 +1,7 @@
 #Program
 5020    # AND R0 R0 x0              0x3000
 102A    # ADD R0 R0 xA              0x3001
-F027    # TRP x21                   0x3002
+F027    # TRP x27                   0x3002
 103F    # ADD R0 R0 X1F     LOOP    0x3003     
 03FD    # BR x1 LOOP                0x3004
 F025    # TRP x25                   0x3005

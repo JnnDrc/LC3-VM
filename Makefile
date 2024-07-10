@@ -2,8 +2,8 @@ CC = gcc
 
 
 
-vm:	src\vm.c
+lc3-vm:	src\vm.c
 	$(CC) $< -o $@
 
-vm_gdb: src\vm.c
+lc3-vm_gdb: src\vm.c
 	$(CC) $< -o $@ -g
