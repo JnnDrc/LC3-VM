@@ -126,7 +126,7 @@ A sintaxe geral das instruções é:
     </tr>
     <tr>
         <td>NOT</td>
-        <td>-0x9</td>
+        <td>0x9</td>
         <td>0b1001</td>
         <td>1001|DR1(3)|SR1(3)|111111</td>
         <td>Negação bit a bit</td>
@@ -231,7 +231,7 @@ há 10 sub-rotinas para TRPVECT:
     <tr>
         <td>trpoutu16</td>
         <td>0x27</td>
-        <td>Escreve a word sem sinal stored armazenada em R0 no console</td>
+        <td>Escreve a word sem sinal armazenada em R0 no console</td>
     </tr>s
     <tr>
         <td>trpini16</td>
@@ -242,6 +242,6 @@ há 10 sub-rotinas para TRPVECT:
     <tr>
         <td>trpouti16</td>
         <td>0x29</td>
-        <td>Escreve a word com sinal stored armazenada em R0 no console</td>
+        <td>Escreve a word com sinal armazenada em R0 no console</td>
     </tr>s
 </table>

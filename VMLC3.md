@@ -129,7 +129,7 @@ the general syntax of the instructions are:
     </tr>
     <tr>
         <td>NOT</td>
-        <td>-0x9</td>
+        <td>0x9</td>
         <td>0b1001</td>
         <td>1001|DR1(3)|SR1(3)|111111</td>
         <td>Bitwise not</td>
