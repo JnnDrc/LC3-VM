@@ -30,9 +30,9 @@ placing a '#' at the first character of the line,
 this turns the entire line a comment
 
 ```htx
-\#i'm a comment line  
+#i'm a comment line  
 F030 i'm a side comment
-\#
+#
 EE3A
 ```
 
@@ -41,12 +41,12 @@ EE3A
 ## Example
 
 ```htx
-\# program  
+# program  
 5020    # AND R0 R0 x0  
 E002    # LEA R0 2  
 F022    # TRP x22  
 F025    # HLT  
-\#memory  
+#memory  
 0048    # H  
 0065    # e  
 006C    # l  
