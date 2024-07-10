@@ -1,0 +1,247 @@
+
+# Maquina Virtual LC-3
+
+Esse programa é uma maquina virtual
+para a arquitetura LC-3.
+esse projeto é baseado nesses artigos: [um](https://www.andreinc.net/2021/12/01/writing-a-simple-vm-in-less-than-125-lines-of-c#virtual-machines), [dois](https://www.jmeiners.com/lc3-vm/)
+
+## O LC-3
+
+O Little Computer 3 ou LC-3 é uma
+simples, arquitetura de 16 bits, usada principalmente
+para ensinar ciência da computação e
+programação em baixo nível.
+
+## A arquitetura
+
+O LC-3 tem 10 registradores de 16-bit,
+8 para proposito geral (R0 ... R7),
+o Registrador de Contador de Programa(RPC),
+e o Registrador de Bandeira da CPU (RCND).  
+
+Ela suporta as operações de SOMA(ADD),
+E(AND) e NÃO(NOT) bit-a-bit com inteiros de 16 bits,
+todos os dados são armazenados com complemento de dois.
+
+Também conta com 128KB de memória, separados em 64K words, o
+endereço inicial para escrever programas, na VM, é o 0x3000.
+
+## Instruction set
+
+A sintaxe geral das instruções é:
+
+![general instruction](instr.drawio.png)
+
+<table>
+    <tr>
+        <th>Instrução</th>
+        <th>Código OP(hex)</th>
+        <th>Código OP(bin)</th>
+        <th>Sintaxe</th>
+        <th>Função</th>
+    </tr>
+    <tr>
+        <td>BR</td>
+        <td>0x0</td>
+        <td>0b0000</td>
+        <td>0000|NZP3|OFF9</td>
+        <td>Ramificação condicional</td>
+    </tr>
+    <tr>
+        <td>ADD<sub>1</sub></td>
+        <td>0x1</td>
+        <td>0b0001</td>
+        <td>0001|DR1(3)|SR1(3)|000|SR2(3)</td>
+        <td>Operação de adição com SR1 e SR2</td>
+    </tr>
+    <tr>
+        <td>ADD<sub>2</sub></td>
+        <td>0x1</td>
+        <td>0b0001</td>
+        <td>0001|DR1(3)|SR1(3)|1|IMM5</td>
+        <td>Operação de adição com SR1 e IMM</td>
+    </tr>
+    <tr>
+        <td>LD</td>
+        <td>0x2</td>
+        <td>0b0010</td>
+        <td>0010|DR1(3)|OFF9</td>
+        <td>Carrega em DR1 RPC + OFFSET</td>
+    </tr>
+    <tr>
+        <td>ST</td>
+        <td>0x3</td>
+        <td>0b0011</td>
+        <td>0011|SR(3)|OFF9</td>
+        <td>Armazena RPC + OFFSET</td>
+    </tr>
+    <tr>
+        <td>JSR</td>
+        <td>0x4</td>
+        <td>0b0100</td>
+        <td>0100|1|OFF11</td>
+        <td>Salta para sub-rotina (RPC + OFFSET)</td>
+    </tr>
+    <tr>
+        <td>JSRR</td>
+        <td>0x4</td>
+        <td>0b0100</td>
+        <td>0100|000|BASER3|000000</td>
+        <td>Salta para sub-rotina (endereço em BASER, Registrador Base)</td>
+    </tr>
+    <tr>
+        <td>AND<sub>1</sub></td>
+        <td>0x5</td>
+        <td>0b0101</td>
+        <td>0101|DR1(3)|SR1(3)|000|SR2(3)</td>
+        <td>Operação de E lógico</td>
+    </tr>
+    <tr>
+        <td>AND<sub>2</sub></td>
+        <td>0x5</td>
+        <td>0b0101</td>
+        <td>0101|DR1(3)|SR1(3)|1|IMM5</td>
+        <td>Operação de E lógico</td>
+    </tr>
+    <tr>
+        <td>LDR</td>
+        <td>0x6</td>
+        <td>0b0110</td>
+        <td>0110|DR1(3)|BASER3|OFF6</td>
+        <td>Carrega em DR1 BASER + OFFSET</td>
+    </tr>
+    <tr>
+        <td>STR</td>
+        <td>0x7</td>
+        <td>0b0111</td>
+        <td>0111|DR1(3)|BASER3|OFF6</td>
+        <td>Armazena DR1 no endereço BASER + OFFSET</td>
+    </tr>
+    <tr>
+        <td>RTI</td>
+        <td>0x8</td>
+        <td>0b1000</td>
+        <td>Não Implementado</td>
+        <td>Retorna da interrupção</td>
+    </tr>
+    <tr>
+        <td>NOT</td>
+        <td>-0x9</td>
+        <td>0b1001</td>
+        <td>1001|DR1(3)|SR1(3)|111111</td>
+        <td>Negação bit a bit</td>
+    </tr>
+    <tr>
+        <td>LDI</td>
+        <td>0xA</td>
+        <td>0b1010</td>
+        <td>1010|DR1(3)|OFF9</td>
+        <td>Carrega em DR1 dado no endereço armazenado em RPC + OFFSET</td>
+    </tr>
+    <tr>
+        <td>STI</td>
+        <td>0xB</td>
+        <td>0b1011</td>
+        <td>1011|SR(3)|OFF9</td>
+        <td>Armazena SR no endereço armazenado em RPC + OFFSET</td>
+    </tr>
+    <tr>
+        <td>JMP</td>
+        <td>0xC</td>
+        <td>0b1100</td>
+        <td>1100|000|BASER3|000000</td>
+        <td>Salta para o endereço em BASER (Registrador Base)</td>
+    </tr>
+    <tr>
+        <td>RES</td>
+        <td>0xD</td>
+        <td>0b1101</td>
+        <td>1101|000000000000</td>
+        <td>Não existe no LC-3 oficial, Reinicia a CPU</td>
+    </tr>
+    <tr>
+        <td>LEA</td>
+        <td>0xE</td>
+        <td>0b1110</td>
+        <td>1110|DR1(3)|OFF9</td>
+        <td>Carrega o Endereço Eficaz (Carrega o endereço de RPC + OFFSET para DR1)</td>
+    </tr>
+    <tr>
+        <td>TRP</td>
+        <td>0xF</td>
+        <td>0b1111</td>
+        <td>1111|0000||TRPVECT8</td>
+        <td>Armadilha, executa função integrada baseada em TRPVECT</td>
+    </tr>
+</table>
+
+### Vetor Trap
+
+A operação Trap(TRP) é usada para I/O e terminar o programa,
+o que ela faz é baseada no seu único argumento de 8bit, TRPVECT, nesta VM,
+há 10 sub-rotinas para TRPVECT:
+
+<table>
+    <tr>
+        <th>Sub-rotina Trap</th>
+        <th>TRPVECT</th>
+        <th>Função</th>
+    </tr>
+        <td>trpgetc</td>
+        <td>0x20</td>
+        <td>Lê um char do teclado e armazena ela no R0</td>
+    </tr>
+    <tr>
+        <td>trpout</td>
+        <td>0x21</td>
+        <td>Escreve o char armazenado no R0 no console</td>
+    </tr>
+    <tr>
+        <td>trpputs</td>
+        <td>0x22</td>
+        <td>Escreve uma string no console, strings são caracteres
+         em posições continuas de memória,que inicia no endereço armazenado start em R0, e acaba quando
+         encontra um char '\0'</td>
+    </tr>
+    <tr>
+        <td>trpin</td>
+        <td>0x23</td>
+        <td>Lê um char do teclado, armazena ela no R0 e escreve ele
+        no console</td>
+    </tr>
+    <tr>
+        <td>trpputsp</td>
+        <td>0x24</td>
+        <td>Escreve uma string de chars empacotados no console, strings são caracteres
+         em posições continuas de memória,que inicia no endereço armazenado start em R0, e acaba quando
+         encontra um char '\0', chars empacotados são dois chars em uma word(2 bytes)
+         </td>
+    </tr>
+    <tr>
+        <td>trphlt</td>
+        <td>0x25</td>
+        <td>Termina o programa, fecha a VM</td>
+    </tr>
+    <tr>
+        <td>trpinu16</td>
+        <td>0x26</td>
+        <td>Lê uma word sem sinal do teclado e armazena ela no R0
+        </td>
+    </tr>
+    <tr>
+        <td>trpoutu16</td>
+        <td>0x27</td>
+        <td>Escreve a word sem sinal stored armazenada em R0 no console</td>
+    </tr>s
+    <tr>
+        <td>trpini16</td>
+        <td>0x28</td>
+        <td>Lê uma word com sinal do teclado e armazena ela no R0
+        </td>
+    </tr>
+    <tr>
+        <td>trpouti16</td>
+        <td>0x29</td>
+        <td>Escreve a word com sinal stored armazenada em R0 no console</td>
+    </tr>s
+</table>

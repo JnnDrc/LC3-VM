@@ -1,0 +1,6 @@
+# program
+E002    # LEA x2
+F024    # TRP x24
+F025    # TRP x25
+# memory
+4241    # .db 'AB'

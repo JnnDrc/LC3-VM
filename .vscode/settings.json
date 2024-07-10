@@ -1,0 +1,27 @@
+{
+    "cSpell.words": [
+        "FCND",
+        "hbuff",
+        "JSRM",
+        "memread",
+        "memwrite",
+        "RCND",
+        "sigext",
+        "sigextimm",
+        "strbuff",
+        "strint",
+        "strllx",
+        "struh",
+        "trpgetc",
+        "trphlt",
+        "trpin",
+        "trpini",
+        "trpinu",
+        "trpout",
+        "trpouti",
+        "trpoutu",
+        "trpputs",
+        "trpputsp",
+        "updflg"
+    ]
+}
