@@ -6,13 +6,11 @@ for the LC-3 architecture.
 this project was based in these
 articles: [one](https://www.andreinc.net/2021/12/01/writing-a-simple-vm-in-less-than-125-lines-of-c#virtual-machines), [two](https://www.jmeiners.com/lc3-vm/)
 
-## The LC-3
+## The LC-3 architecture
 
 The Little Computer 3 or LC-3 is a
 simple, 16 bit architecture, used principally
 for teaching computer science and low level programming.
-
-## The architecture
 
 The LC-3 have 10 16-bit registers,
 8 for general purpose (R0 ... R7),
@@ -225,26 +223,82 @@ there is 10 subroutines for TRPVECT:
         <td>0x25</td>
         <td>Halts the code, end the VM</td>
     </tr>
-    <tr>s
-        <td>trpinu16</td>
+    <tr>
+        <td>trpin16</td>
         <td>0x26</td>
-        <td>Reads a unsigned word from the keyboard and store it in R0
+        <td>Reads a word from the keyboard and store it in R0
         </td>
     </tr>
     <tr>
         <td>trpoutu16</td>
         <td>0x27</td>
         <td>Prints the unsigned word stored in R0 to the console</td>
-    </tr>s
-    <tr>
-        <td>trpini16</td>
-        <td>0x28</td>
-        <td>Reads a signed word from the keyboard and store it in R0
-        </td>
     </tr>
     <tr>
         <td>trpouti16</td>
-        <td>0x29</td>
+        <td>0x28</td>
         <td>Prints the signed word stored in R0 to the console</td>
-    </tr>s
+    </tr>
+    <tr>
+        <td>trpputsc</td>
+        <td>0x29</td>
+        <td>Prints a colored string to the console, strings are characters
+         in contiguous memory locations,with it start address being stored in R0, and it end
+         being a '\0' char, the colors, text color and background color, are stored in the
+         upper byte, each occupying a nibble(4 bits),the first, the colors supported are the
+         8 basic ASCII colors, the first nibble is the text color,the second is the background color.
+         (obs: the first nibbles is the nibble with the lower values[8-11],and the second is the nibble
+         with the upper values[12-15])
+         </td>
+    </tr>
+</table>
+
+### trpputsc Colors
+
+<table>
+    <tr>
+        <th>Color</th>
+        <th>ASCII Code(text/background)(dec)</th>
+        <th>VM Machine Code(hex)</th>
+    </tr>
+    <tr>
+        <td>Black</td>
+        <td>30/40</td>
+        <td>0x0</td>
+    </tr>
+    <tr>
+        <td>Red</td>
+        <td>31/41</td>
+        <td>0x1</td>
+    </tr>
+    <tr>
+        <td>Green</td>
+        <td>32/42</td>
+        <td>0x2</td>
+    </tr>
+    <tr>
+        <td>Yellow</td>
+        <td>33/43</td>
+        <td>0x3</td>
+    </tr>
+    <tr>
+        <td>Blue</td>
+        <td>34/44</td>
+        <td>0x4</td>
+    </tr>
+    <tr>
+        <td>Magenta</td>
+        <td>35/45</td>
+        <td>0x5</td>
+    </tr>
+    <tr>
+        <td>Cyan</td>
+        <td>36/46</td>
+        <td>0x6</td>
+    </tr>
+    <tr>
+        <td>White</td>
+        <td>37/47</td>
+        <td>0x7</td>
+    </tr>
 </table>

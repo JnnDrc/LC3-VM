@@ -5,14 +5,12 @@ Esse programa é uma maquina virtual
 para a arquitetura LC-3.
 esse projeto é baseado nesses artigos: [um](https://www.andreinc.net/2021/12/01/writing-a-simple-vm-in-less-than-125-lines-of-c#virtual-machines), [dois](https://www.jmeiners.com/lc3-vm/)
 
-## O LC-3
+## O LC-3 e a arquitetura
 
 O Little Computer 3 ou LC-3 é uma
-simples, arquitetura de 16 bits, usada principalmente
+simples arquitetura de 16 bits, usada principalmente
 para ensinar ciência da computação e
 programação em baixo nível.
-
-## A arquitetura
 
 O LC-3 tem 10 registradores de 16-bit,
 8 para proposito geral (R0 ... R7),
@@ -21,16 +19,18 @@ e o Registrador de Bandeira da CPU (RCND).
 
 Ela suporta as operações de SOMA(ADD),
 E(AND) e NÃO(NOT) bit-a-bit com inteiros de 16 bits,
-todos os dados são armazenados com complemento de dois.
+possui suporte para complemento de dois.
+
+Sua ALU tem as três bandeiras Positivo(P),Negativo(N) e Zero(Z).
 
 Também conta com 128KB de memória, separados em 64K words, o
-endereço inicial para escrever programas, na VM, é o 0x3000.
+endereço inicial para escrever programa na VM,por padrão, é o 0x3000.
 
 ## Instruction set
 
 A sintaxe geral das instruções é:
 
-![general instruction](instr.drawio.png)
+![instrução geral](instr.drawio.png)
 
 <table>
     <tr>
@@ -223,25 +223,81 @@ há 10 sub-rotinas para TRPVECT:
         <td>Termina o programa, fecha a VM</td>
     </tr>
     <tr>
-        <td>trpinu16</td>
+        <td>trpin16</td>
         <td>0x26</td>
-        <td>Lê uma word sem sinal do teclado e armazena ela no R0
+        <td>Lê uma word do teclado e armazena ela no R0
         </td>
     </tr>
     <tr>
         <td>trpoutu16</td>
         <td>0x27</td>
         <td>Escreve a word sem sinal armazenada em R0 no console</td>
-    </tr>s
-    <tr>
-        <td>trpini16</td>
-        <td>0x28</td>
-        <td>Lê uma word com sinal do teclado e armazena ela no R0
-        </td>
     </tr>
     <tr>
         <td>trpouti16</td>
-        <td>0x29</td>
+        <td>0x28</td>
         <td>Escreve a word com sinal armazenada em R0 no console</td>
-    </tr>s
+    </tr>
+    <tr>
+        <td>trpputsc</td>
+        <td>0x29</td>
+        <td>Escreve uma string colorida no console, strings são caracteres
+         em posições continuas de memória,que inicia no endereço armazenado start em R0, e acaba quando
+         encontra um char '\0', As cores de texto e de fundo, são armazenadas no byte superior,
+         cada uma ocupando um nibble(4 bits),o primeiro nibble sendo a cor de texto, e o segundo a
+         cor de fundo, as cores suportadas são as 8 cores básicas do padrão ASCII.
+         (obs: o primeiro nibble é o com os menores valores[8-11],e o segundo é o com os maiores
+         valores[12-15])
+         </td>
+    </tr>
+</table>
+
+### Cores trpputsc
+
+<table>
+    <tr>
+        <th>Cor</th>
+        <th>Código ASCII(texto/fundo)(dec)</th>
+        <th>Código de maquina da VM(hex)</th>
+    </tr>
+    <tr>
+        <td>Preto</td>
+        <td>30/40</td>
+        <td>0x0</td>
+    </tr>
+    <tr>
+        <td>Vermelho</td>
+        <td>31/41</td>
+        <td>0x1</td>
+    </tr>
+    <tr>
+        <td>Verde</td>
+        <td>32/42</td>
+        <td>0x2</td>
+    </tr>
+    <tr>
+        <td>Amarelo</td>
+        <td>33/43</td>
+        <td>0x3</td>
+    </tr>
+    <tr>
+        <td>Azul</td>
+        <td>34/44</td>
+        <td>0x4</td>
+    </tr>
+    <tr>
+        <td>Magenta</td>
+        <td>35/45</td>
+        <td>0x5</td>
+    </tr>
+    <tr>
+        <td>Ciano</td>
+        <td>36/46</td>
+        <td>0x6</td>
+    </tr>
+    <tr>
+        <td>Branco</td>
+        <td>37/47</td>
+        <td>0x7</td>
+    </tr>
 </table>

@@ -39,6 +39,10 @@ typedef unsigned int u32;           // 32 bits unsigned integer | inteiro sem si
 #define TRP(inst)   ((inst)&0xFF)           // macro to get the trap vector             | Macro para pegar o vetor da operação trap
 #define CHR1(ptr)   ((char)((*ptr)&0xFF))   // macro to get the first char of a word    | Macro para pegar o primeiro char de uma word
 #define CHR2(ptr)   ((char)((*ptr>>8)&0xFF))// macro to get the seconde char of a word  | Macro para pegar o segundo char de uma word
+#define TXTCLR(ptr) (30+(((*ptr)>>8)&0x0F)) // macro to get the text color
+#define BCKCLR(ptr) (40+(((*ptr)>>12)&0xFF))// macro to get the background color
+
+#define CLRRESET "\x1b[0m"      // macro to reset color
 
 
 //extend bits to 16.                        | estende os bits para 16.
@@ -187,7 +191,7 @@ VM_LC3 void trpputs(void)
 {
     u16* p = memory + reg[R0];
     while (*p)
-    {
+    {   
         fprintf(stdout,"%c",(char)(*p));
         p++;
     }
@@ -210,7 +214,7 @@ VM_LC3 void trpputsp(void)
         p++;
     }
 }
-VM_LC3 void trpinu16(void)
+VM_LC3 void trpin16(void)
 {
     fscanf(stdin,"%hu",&reg[R0]);
 }
@@ -218,21 +222,25 @@ VM_LC3 void trpoutu16(void)
 {   
     fprintf(stdout,"%hu\n",reg[R0]);
 }
-VM_LC3 void trpini16(void)
-{   
-    //! NOT EXIST IN OFFICIAL LC-3, Added by me | NÃO EXISTE NO LC-3 OFICIAL, adicionado por mim
-    fscanf(stdin,"%hu",&reg[R0]);
-}
 VM_LC3 void trpouti16(void)
 {   
     //! NOT EXIST IN OFFICIAL LC-3, Added by me | NÃO EXISTE NO LC-3 OFICIAL, adicionado por mim
     fprintf(stdout,"%d\n",(short)reg[R0]);
 }
+VM_LC3 void trpputsc(void)
+{
+    u16* p = memory + reg[R0];
+    while (*p)
+    {   
+        fprintf(stdout,"\033[%d;%dm%c""\x1b[0m",TXTCLR(p),BCKCLR(p),(char)(*p));
+        p++;
+    }
+}
 VM_LC3 void trphlt(void)
 {
     running = 0;
 }
-trp_executor_f trp_execute[TRPVECS] = {trpgetc, trpout, trpputs, trpin, trpputsp,trphlt, trpinu16, trpoutu16,trpini16,trpouti16};
+trp_executor_f trp_execute[TRPVECS] = {trpgetc, trpout, trpputs, trpin, trpputsp,trphlt, trpin16, trpoutu16,trpouti16,trpputsc};
 
 /*0xF|0b1111*/ VM_LC3 void trp (u16 inst)
 { 

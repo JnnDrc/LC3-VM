@@ -1,5 +1,14 @@
 {
     "cSpell.words": [
+        "BCKBLACK",
+        "BCKBLUE",
+        "bckclr",
+        "BCKCYAN",
+        "BCKGREEN",
+        "BCKMAGNT",
+        "BCKWHITE",
+        "BCKYLLW",
+        "CLRRESET",
         "FCND",
         "hbuff",
         "JSRM",
@@ -21,7 +30,17 @@
         "trpouti",
         "trpoutu",
         "trpputs",
+        "trpputsc",
         "trpputsp",
+        "TXTBLACK",
+        "TXTBLUE",
+        "txtclr",
+        "TXTCYAN",
+        "TXTGREEN",
+        "TXTMAGNT",
+        "TXTRED",
+        "TXTWHITE",
+        "TXTYLLW",
         "updflg"
     ]
 }
