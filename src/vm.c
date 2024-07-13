@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <time.h>
 //----------------------------------------------------------
 //Macros & Helpers
 
@@ -278,26 +278,35 @@ void load_image(const char* image_path, u16 offset)
     fclose(img);
 }
 
-void debug_memory(u16 offset)
-{
-    u16* p = memory + PC_START + offset;
-    u16 mempos = PC_START + offset;
-    while (*p)
+void memory_report(const char* name)
+{   
+    
+    FILE* memrep = fopen(name,"wb");
+    if(memrep == NULL)
     {
-        fprintf(stdout,"\x1b[33m""memory[0x%04X] : 0x%04X\n""\x1b[0m",mempos,*p);
-        p++;
-        mempos++;
+        fprintf(stderr,"\x1b[31m""ERR: Failed to create memory report""\x1b[0m");
+        exit(1);
     }
+    fprintf(memrep,"-----[ 0x0000 0x0001 0x0002 0x0003 0x0004 0x0005 0x0006 0x0007 0x0008 0x0009 0x000A 0x000B 0x000C 0x000D 0x000E 0x000F ]\n");
+    for (size_t i = 0; i < 4096; i++)
+    {   
+        fprintf(memrep,"#%03X:[ 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X ]\n",i,memread(16*i+0),memread(16*i+1),memread(16*i+2),memread(16*i+3),memread(16*i+4),memread(16*i+5),memread(16*i+6),memread(16*i+7),memread(16*i+8),memread(16*i+9),memread(16*i+0xA),memread(16*i+0xB),memread(16*i+0xC),memread(16*i+0xD),memread(16*i+0xE),memread(16*i+0xF));
+    }
+    
+    fclose(memrep);
 }
 
 void help(void);
 
 int main(int argc, char const *argv[])
 {   
-    size_t runoff = 0x0;
-    size_t loadoff = 0x0;
+    size_t runoff = 0x0, loadoff = 0x0;
     u32 arg = 2;
-    u8 dbg = 0;
+    u8 mrp = 0;
+    char mrn[128] = "memory_report_",init_log[128] = "", final_log[128] = "", time_str[64] = "";
+    time_t exec_time;
+    struct tm *local_time;
+
     if(argc < 2)
     {
         fprintf(stdout,"\x1b[31m""ERR: Missing program to run\n""\x1b[0m");
@@ -315,13 +324,22 @@ int main(int argc, char const *argv[])
     fprintf(stdout,"\x1b[36m""Setting up VM\n",PC_START + runoff);
     for(u32 i = 2; i < argc; i++)
     {
-        if(!strcmp(argv[i], "--dbg")) dbg = 1;
+        if(!strcmp(argv[i], "--memrep")) mrp = 1;
 
         if(!strcmp(argv[i],"--runoff")) sscanf(argv[i+1],"%x",&runoff);
 
         if(!strcmp(argv[i],"--loadoff")) sscanf(argv[i+1],"%x",&loadoff);
     }
-    
+    if(mrp)
+    {
+        time(&exec_time);
+        local_time = localtime(&exec_time);
+        strftime(time_str,sizeof(time_str),"%d-%m-%Y_%H-%M-%S",local_time);
+        strcat(mrn,time_str);
+        strcat(strcpy(init_log,mrn),"_init.log");
+        strcat(strcpy(final_log,mrn),"_final.log");
+    }
+
 
     fprintf(stdout,"\x1b[36m""Run origin setted to %X\n""\x1b[0m",PC_START + runoff);
     fprintf(stdout,"\x1b[36m""Load program image origin setted to %X\n""\x1b[0m",PC_START + loadoff);
@@ -329,11 +347,13 @@ int main(int argc, char const *argv[])
     fprintf(stdout,"\x1b[36m""Loading program to memory...\n""\x1b[0m");
     load_image(argv[1],loadoff);
     fprintf(stdout,"\x1b[36m""Program Loaded to memory\n""\x1b[0m");
-
-    if(dbg) debug_memory(loadoff);
-
-    run(runoff);
     
+    if(mrp) memory_report(init_log);
+
+        run(runoff);
+
+    if(mrp) memory_report(final_log);
+
     fprintf(stdout,"\x1b[36m""\nVM exited with success\n""\x1b[0m");
     return 0;
 }
@@ -342,7 +362,7 @@ void help(void)
 {
     fprintf(stdout,"\x1b[36m""----LC-3 Virtual Machine Help Manual----\n""\x1b[0m");
     fprintf(stdout,"\x1b[36m""flags:                                  \n""\x1b[0m");
-    fprintf(stdout,"\x1b[36m"" --dbg     : enable debug mode          \n""\x1b[0m");
+    fprintf(stdout,"\x1b[36m"" --memrep  : prints a memory report log \n""\x1b[0m");
     fprintf(stdout,"\x1b[36m"" --runoff  : set run offset             \n""\x1b[0m");
     fprintf(stdout,"\x1b[36m""      --runoff value(hex)               \n""\x1b[0m");
     fprintf(stdout,"\x1b[36m"" --loadoff : set load program offset    \n""\x1b[0m");

@@ -13,6 +13,7 @@
         "hbuff",
         "JSRM",
         "memread",
+        "memrep",
         "memwrite",
         "RCND",
         "sigext",
