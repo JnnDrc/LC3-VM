@@ -302,3 +302,59 @@ there is 10 subroutines for TRPVECT:
         <td>0x7</td>
     </tr>
 </table>
+
+## VM Features
+
+### Special params
+
+You can specify some special params
+to the VM, the params are typed
+after the program. `lc3-vm [program] [--params]...`
+
+#### --help
+
+This param is _special_, it's different from
+the other params, it doesn't changes anything in
+the VM run, it doesn't even runs a programs, --help
+is typed in the place of the program and it prints
+a little description of all special param covered in
+this section.
+
+`lc3-vm --help`
+
+#### --runoff
+
+This param set the offset of the PC start value.
+The initial value of PC 0x3000 + runoff(0x), by default runoff
+is zero, this params changes it.
+
+`lc3-vm program.o --runoff A1`
+this changes the start PC value
+for 0x30A1
+
+#### --loadoff
+
+This param set the offset of the program loading
+origin. The programs are written starting in
+0x3000 + loadoff(0x), by default loadoff is zero,
+this param changes it.
+
+`lc3-vm program.o --loadoff FF`
+this changes the load program origin
+to 0x30FF
+
+! WARNING ! : the runoff doesn't changes with loadoff, pay attention where
+your program begins
+
+#### --memrep
+
+This param prints creates two
+logs of the memory, one before the
+program run, and another after the program run.
+
+`lc3-vm program.o --memrep`
+this will generate this two files
+.\\
+ | lc3-vm.exe
+ | memory\_reports\_[DAY-MONTH-YEAR]\_[HOUR-MIN-SEC]\_final.log
+ | memory\_reports\_[DAY-MONTH-YEAR]\_[HOUR-MIN-SEC]\_init.log

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 //----------------------------------------------------------
 //Macros & Helpers
 
@@ -17,10 +18,10 @@
 typedef unsigned char u8;           // 8 bits unsigned integer  | inteiro sem sinal de 8 bits
 typedef unsigned short u16;         // 16 bits unsigned integer | inteiro sem sinal de 16 bits
 typedef unsigned int u32;           // 32 bits unsigned integer | inteiro sem sinal de 32 bits
+
 #define U16_MAX 0b1111111111111111  // Max value for unsigned 16bit integer | Valor máximo para inteiro sem sinal de 16 bits
 
-//? Uncomment these to use rti or res | descomente-os para poder usar rti ou res
-//#define RTI_IMPLEMENTED   //!NEED IMPLEMENTATION TO USE | PRECISA DE IMPLEMENTAÇÃO PARA USAR
+//? Uncomment this to use res | descomente para poder usar  res
 //#define RES_VALID        
 
 
@@ -39,8 +40,8 @@ typedef unsigned int u32;           // 32 bits unsigned integer | inteiro sem si
 #define TRP(inst)   ((inst)&0xFF)           // macro to get the trap vector             | Macro para pegar o vetor da operação trap
 #define CHR1(ptr)   ((char)((*ptr)&0xFF))   // macro to get the first char of a word    | Macro para pegar o primeiro char de uma word
 #define CHR2(ptr)   ((char)((*ptr>>8)&0xFF))// macro to get the seconde char of a word  | Macro para pegar o segundo char de uma word
-#define TXTCLR(ptr) (30+(((*ptr)>>8)&0x0F)) // macro to get the text color
-#define BCKCLR(ptr) (40+(((*ptr)>>12)&0xFF))// macro to get the background color
+#define TXTCLR(ptr) (30+(((*ptr)>>8)&0x0F)) // macro to get the text color              | Macro para pegar a cor do texto
+#define BCKCLR(ptr) (40+(((*ptr)>>12)&0xFF))// macro to get the background color        | Macro para pegar a cor de fundo 
 
 #define CLRRESET "\x1b[0m"      // macro to reset color
 
@@ -135,12 +136,7 @@ typedef void (*trp_executor_f)();
 }
 /*0x8|0b1000*/ VM_LC3 void rti (u16 inst) 
 { 
-    //!NOT IMPLEMENTED | NÃO IMPLEMENTADO
-    #if defined RTI_IMPLEMENTED
-        //rti implementation here
-    #else
         exit(1);
-    #endif
 }
 /*0x9|0b1001*/ VM_LC3 void not (u16 inst) 
 { 
@@ -164,11 +160,11 @@ typedef void (*trp_executor_f)();
 {   
     //! NOT EXIST IN OFFICIAL LC-3 | NÃO EXISTE NO LC-3 OFICIAL
     #if defined RES_VALID
-        reg[RPC] = PC_START;
         for (register u8 i = 0; i < RCNT; i++)
         {
             reg[i] = 0;
         }
+        reg[RPC] = PC_START;
     #else
         exit(1);
     #endif
@@ -253,7 +249,7 @@ op_executor_f op_execute[OPS] = {br, add, ld, st, jsr, and, ldr, str, rti, not, 
 //----------------------------------------------------------
 //Load programs and main loop
 
-void run(u16 offset)
+void run(short offset)
 {   
     fprintf(stdout,"\x1b[36m""Starting VM...\n\n""\x1b[0m");
     reg[RPC] = PC_START + offset;
@@ -263,7 +259,7 @@ void run(u16 offset)
         op_execute[OPC(instruction)](instruction);
     }
 }
-void load_image(const char* image_path, u16 offset)
+void load_image(const char* image_path, short offset)
 {
     FILE* img = fopen(image_path, "rb");
     if(img == NULL){
@@ -271,9 +267,8 @@ void load_image(const char* image_path, u16 offset)
         exit(1);
     }
 
-
     u16* p = memory + PC_START + offset;
-    fread(p,sizeof(u16),(U16_MAX-PC_START),img);
+    fread(p,sizeof(u16),(U16_MAX-(PC_START + (short)offset)),img);
 
     fclose(img);
 }
@@ -287,7 +282,7 @@ void memory_report(const char* name)
         fprintf(stderr,"\x1b[31m""ERR: Failed to create memory report""\x1b[0m");
         exit(1);
     }
-    fprintf(memrep,"-----[ 0x0000 0x0001 0x0002 0x0003 0x0004 0x0005 0x0006 0x0007 0x0008 0x0009 0x000A 0x000B 0x000C 0x000D 0x000E 0x000F ]\n");
+    fprintf(memrep,"-----[ 0x###0 0x###1 0x###2 0x###3 0x###4 0x###5 0x###6 0x###7 0x###8 0x###9 0x###A 0x###B 0x###C 0x###D 0x###E 0x###F ]\n");
     for (size_t i = 0; i < 4096; i++)
     {   
         fprintf(memrep,"#%03X:[ 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X 0x%04X ]\n",i,memread(16*i+0),memread(16*i+1),memread(16*i+2),memread(16*i+3),memread(16*i+4),memread(16*i+5),memread(16*i+6),memread(16*i+7),memread(16*i+8),memread(16*i+9),memread(16*i+0xA),memread(16*i+0xB),memread(16*i+0xC),memread(16*i+0xD),memread(16*i+0xE),memread(16*i+0xF));
@@ -300,8 +295,7 @@ void help(void);
 
 int main(int argc, char const *argv[])
 {   
-    size_t runoff = 0x0, loadoff = 0x0;
-    u32 arg = 2;
+    short runoff = 0x0, loadoff = 0x0;
     u8 mrp = 0;
     char mrn[128] = "memory_report_",init_log[128] = "", final_log[128] = "", time_str[64] = "";
     time_t exec_time;
@@ -321,14 +315,14 @@ int main(int argc, char const *argv[])
     }
 
 
-    fprintf(stdout,"\x1b[36m""Setting up VM\n",PC_START + runoff);
+    fprintf(stdout,"\x1b[36m""Setting up VM\n");
     for(u32 i = 2; i < argc; i++)
     {
         if(!strcmp(argv[i], "--memrep")) mrp = 1;
 
-        if(!strcmp(argv[i],"--runoff")) sscanf(argv[i+1],"%x",&runoff);
+        if(!strcmp(argv[i],"--runoff")) sscanf(argv[i+1],"%hx",&runoff);
 
-        if(!strcmp(argv[i],"--loadoff")) sscanf(argv[i+1],"%x",&loadoff);
+        if(!strcmp(argv[i],"--loadoff")) sscanf(argv[i+1],"%hx",&loadoff);
     }
     if(mrp)
     {
@@ -345,7 +339,9 @@ int main(int argc, char const *argv[])
     fprintf(stdout,"\x1b[36m""Load program image origin setted to %X\n""\x1b[0m",PC_START + loadoff);
 
     fprintf(stdout,"\x1b[36m""Loading program to memory...\n""\x1b[0m");
-    load_image(argv[1],loadoff);
+
+        load_image(argv[1],loadoff);
+
     fprintf(stdout,"\x1b[36m""Program Loaded to memory\n""\x1b[0m");
     
     if(mrp) memory_report(init_log);

@@ -301,3 +301,64 @@ há 10 sub-rotinas para TRPVECT:
         <td>0x7</td>
     </tr>
 </table>
+
+## VM Features
+
+### Special params
+
+Você pode especificar alguns parâmetros
+especias para a VM, os parâmetros são
+digitados depois do programa.
+`lc3-vm [program] [--params]...`
+
+#### --help
+
+Este parâmetro é especial, é diferente dos
+outros parâmetros, não altera nada na
+execução da VM, não executa nem mesmo
+um programa, --help´é digitado no lugar
+do programa e imprime uma pequena descrição
+de todos os parâmetros especiais cobertos
+nesta seção.
+
+`lc3-vm --help`
+
+#### --runoff
+
+Este parâmetro define o deslocamento do valor inicial do PC.
+O valor inicial do PC é 0x3000 + runoff(0x), por padrão runoff
+é zero, este parâmetro o altera.
+
+`lc3-vm program.o --runoff A1`
+isso altera o valor inicial do PC
+para 0x30A1
+
+#### --loadoff
+
+Este parâmetro define o deslocamento
+da origem de carregamento do programa.
+Os programas são escritos começando em
+0x3000 + loadoff(0x), por padrão loadoff é zero,
+este parâmetro o altera.
+
+`lc3-vm program.o --loadoff FF`
+isso altera a origem do
+carregamento do programa
+para 0x30FF
+
+! AVISO ! : o runoff não muda com o loadoff, preste atenção onde
+seu programa começa
+
+#### --memrep
+
+Este parâmetro cria dois
+logs da memória, um antes da
+execução do programa e outro
+após a execução do programa.
+
+`lc3-vm program.o --memrep`
+isso gerará estes dois arquivos
+.\\
+ | lc3-vm.exe
+ | memory\_reports\_[DAY-MONTH-YEAR]\_[HOUR-MIN-SEC]\_final.log
+ | memory\_reports\_[DAY-MONTH-YEAR]\_[HOUR-MIN-SEC]\_init.log

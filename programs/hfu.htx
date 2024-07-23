@@ -10,7 +10,7 @@ F020    # trp x20           $ 0x3005
 5920    # and r4 r4 x0      $ 0x3007
 1820    # add r4 r0 x0      $ 0x3008
 1034    # add r0 r0 -xB     $ 0x3009
-03F9    # brp x-6           $ 0x300A
+03F9    # brp -x6           $ 0x300A
 56E0    # and r3 r3 x0      $ 0x300B
 E637    # lea r3 x37        $ 0x300C
 5020    # and r0 r0 x0      $ 0x300D

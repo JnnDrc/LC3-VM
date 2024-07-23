@@ -4,7 +4,7 @@
 This small program compiles a plain text file with
 hex numbers, to a raw file with these hex values
 
-## use
+## Use
 
 for use it you just need a plain text(or any file you want)
 with ASCII character representing hex values, this input
@@ -14,8 +14,6 @@ Expected argument set : hexc \[path_to_input\](OPTIONAL\)\[path_to_output\]
 
 if the output file is not specified, the output will be
 \[input_name_without_extension.o\]  
-
-`OBS: the max hex value supported is 0xFFFF`
 
 ## Syntax
 
@@ -37,6 +35,7 @@ EE3A
 ```
 
 `OBS: the max size of a line is 256`
+`OBS: the max hex value supported is 0xFFFF`
 
 ## Example
 
