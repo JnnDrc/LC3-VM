@@ -68,7 +68,7 @@ u16 memory[U16_MAX + 1] = {0};      //memory array
 //function to read data in memory address
 VM_LC3 u16 memread(u16 address){return memory[address];}
 //function to write data in memory address
-VM_LC3 u16 memwrite(u16 address, u16 data){memory[address] = data;}
+VM_LC3 void memwrite(u16 address, u16 data){memory[address] = data;}
 //----------------------------------------------------------
 //Registers | Registradores
 
@@ -350,7 +350,7 @@ int main(int argc, char const *argv[])
 
     if(mrp) memory_report(final_log);
 
-    fprintf(stdout,"\x1b[36m""\nVM exited with success\n""\x1b[0m");
+    fprintf(stdout,"\n\x1b[36m""\nVM exited with success\n""\x1b[0m");
     return 0;
 }
 
